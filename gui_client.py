@@ -1,7 +1,7 @@
+import os
 import sys 
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QMessageBox, QShortcut
-from PyQt5.QtGui import QKeySequence
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import QMessageBox
 from ui import client 
 import socket
 from threading import Thread
@@ -13,8 +13,10 @@ class ExampleApp(QtWidgets.QMainWindow, client.Ui_MainWindow):
         self.setupUi(self)
         self.pushButton.clicked.connect(self.connect)
         self.pushButton_2.clicked.connect(self.send_msg)
+        self.pushButton_3.clicked.connect(self.restart)
         self.s = socket.socket()
         self.pushButton_2.setShortcut("Return")
+        self.setWindowIcon(QtGui.QIcon('./icon/chat.png'))
         
     
     def send_msg(self):
@@ -60,19 +62,25 @@ class ExampleApp(QtWidgets.QMainWindow, client.Ui_MainWindow):
             # создаем поток, который слушает сообщения для этого клиента и выводит их
             # делаем поток демоном, чтобы он завершался, когда завершается основной поток
             # запускаем поток
-            t = Thread(target=listen_for_messages)
-            t.daemon = True
-            t.start()      
+            self.t = Thread(target=listen_for_messages)
+            self.t.daemon = True
+            self.t.start()      
         except:
             self.textBrowser.append("[-] Ошибка подключения")
             exit
     
-def main():
+    def restart(self):
+        try:
+            # app.exit(self.QMainWindow.EXIT_CODE_REBOOT )
+            os.execl(sys.executable, sys.executable, *sys.argv)
+        except Exception as e:
+            QMessageBox.about(self, "Error", f'{e}')
+        
+        
+    
+
+if __name__ == '__main__':  
     app = QtWidgets.QApplication(sys.argv)  
     window = ExampleApp() 
     window.show()  
     app.exec_() 
-    
-    
-if __name__ == '__main__':  
-    main()  
